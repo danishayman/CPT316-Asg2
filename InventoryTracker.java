@@ -39,11 +39,10 @@ public class InventoryTracker {
     private static final String FILE_PATH = "inventory.txt";
     private Map<Integer, Item> inventory = new HashMap<>();
     private Scanner scanner;
-    private BufferedReader reader;
+    private int nextId = 1;
 
     public InventoryTracker() {
         scanner = new Scanner(System.in);
-        reader = new BufferedReader(new InputStreamReader(System.in));
     }
 
     public void clearScreen() {
@@ -65,9 +64,12 @@ public class InventoryTracker {
             while ((line = fileReader.readLine()) != null) {
                 Item item = Item.fromString(line);
                 inventory.put(item.getId(), item);
+                // Update nextId to be one more than the highest existing ID
+                nextId = Math.max(nextId, item.getId() + 1);
             }
         } catch (IOException e) {
             System.out.println("No existing inventory found. Starting fresh.");
+            nextId = 1;
         }
     }
 
@@ -94,6 +96,10 @@ public class InventoryTracker {
     }
 
     public void displayInventory() {
+        if (inventory.isEmpty()) {
+            System.out.println("\nInventory is empty!");
+            return;
+        }
         System.out.println("\nCurrent Inventory:");
         System.out.printf("%-5s %-20s %-10s %-12s %-12s%n", "ID", "Name", "Quantity", "Retail", "Wholesale");
         System.out.println("─".repeat(65));
@@ -104,56 +110,55 @@ public class InventoryTracker {
         }
     }
 
-    public boolean checkForCtrlX() {
-        try {
-            if (System.in.available() > 0) {
-                int input = reader.read();
-                if (input == 24) { // Ctrl+X
-                    clearScreen();
-                    return true;
+    public String getInput(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                String input = scanner.nextLine().trim();
+                
+                // Check for Ctrl+X (as a string "24" or "")
+                if (input.equals("24") || input.isEmpty()) {
+                    return null;
                 }
+                return input;
+            } catch (NoSuchElementException e) {
+                return null; // Return null if Ctrl+X is pressed
             }
-        } catch (IOException e) {
-            // Ignore
         }
-        return false;
     }
 
     public void addItem() {
         System.out.println("\nAdding New Item (Press Ctrl+X to return to main menu)");
         System.out.println("─".repeat(50));
+        System.out.println("Auto-assigned ID will be: " + nextId);
         
+        String name = getInput("Enter item name: ");
+        if (name == null) return;
+
+        String quantityStr = getInput("Enter quantity: ");
+        if (quantityStr == null) return;
+        
+        String retailStr = getInput("Enter retail price (RM): ");
+        if (retailStr == null) return;
+        
+        String wholesaleStr = getInput("Enter wholesale price (RM): ");
+        if (wholesaleStr == null) return;
+
         try {
-            System.out.print("Enter item name: ");
-            if (checkForCtrlX()) return;
-            String name = scanner.nextLine();
+            int quantity = Integer.parseInt(quantityStr);
+            double retail = Double.parseDouble(retailStr);
+            double wholesale = Double.parseDouble(wholesaleStr);
 
-            System.out.print("Enter item ID: ");
-            if (checkForCtrlX()) return;
-            int id = scanner.nextInt();
-
-            System.out.print("Enter quantity: ");
-            if (checkForCtrlX()) return;
-            int quantity = scanner.nextInt();
-
-            System.out.print("Enter retail price (RM): ");
-            if (checkForCtrlX()) return;
-            double retail = scanner.nextDouble();
-
-            System.out.print("Enter wholesale price (RM): ");
-            if (checkForCtrlX()) return;
-            double wholesale = scanner.nextDouble();
-
-            inventory.put(id, new Item(name, id, quantity, retail, wholesale));
+            inventory.put(nextId, new Item(name, nextId, quantity, retail, wholesale));
             saveInventory();
+            nextId++;
+            
             System.out.println("\nItem added successfully!");
             System.out.println("Press Enter to continue...");
-            scanner.nextLine(); // Consume newline
-            scanner.nextLine(); // Wait for Enter
-        } catch (Exception e) {
+            scanner.nextLine();
+        } catch (NumberFormatException e) {
             System.out.println("Invalid input. Press Enter to continue...");
-            scanner.nextLine(); // Consume invalid input
-            scanner.nextLine(); // Wait for Enter
+            scanner.nextLine();
         }
     }
 
@@ -161,32 +166,30 @@ public class InventoryTracker {
         System.out.println("\nUpdating Quantity (Press Ctrl+X to return to main menu)");
         System.out.println("─".repeat(50));
         
-        try {
-            System.out.print("Enter item ID: ");
-            if (checkForCtrlX()) return;
-            int id = scanner.nextInt();
+        String idStr = getInput("Enter item ID: ");
+        if (idStr == null) return;
 
+        try {
+            int id = Integer.parseInt(idStr);
             if (!inventory.containsKey(id)) {
                 System.out.println("Item not found. Press Enter to continue...");
-                scanner.nextLine(); // Consume newline
-                scanner.nextLine(); // Wait for Enter
+                scanner.nextLine();
                 return;
             }
 
-            System.out.print("Enter new quantity: ");
-            if (checkForCtrlX()) return;
-            int quantity = scanner.nextInt();
+            String quantityStr = getInput("Enter new quantity: ");
+            if (quantityStr == null) return;
 
+            int quantity = Integer.parseInt(quantityStr);
             inventory.get(id).setQuantity(quantity);
             saveInventory();
+            
             System.out.println("\nQuantity updated successfully!");
             System.out.println("Press Enter to continue...");
-            scanner.nextLine(); // Consume newline
-            scanner.nextLine(); // Wait for Enter
-        } catch (Exception e) {
+            scanner.nextLine();
+        } catch (NumberFormatException e) {
             System.out.println("Invalid input. Press Enter to continue...");
-            scanner.nextLine(); // Consume invalid input
-            scanner.nextLine(); // Wait for Enter
+            scanner.nextLine();
         }
     }
 
@@ -196,29 +199,29 @@ public class InventoryTracker {
         while (true) {
             clearScreen();
             displayMenu();
-            System.out.print("\nChoose an option: ");
-
+            
             try {
-                int choice = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
-                clearScreen();
+                System.out.print("\nChoose an option: ");
+                String choice = scanner.nextLine();
 
                 switch (choice) {
-                    case 1:
+                    case "1":
+                        clearScreen();
                         addItem();
                         break;
-                    case 2:
+                    case "2":
+                        clearScreen();
                         updateQuantity();
                         break;
-                    case 3:
+                    case "3":
+                        clearScreen();
                         displayInventory();
                         System.out.print("\nPress Enter to continue...");
                         scanner.nextLine();
                         break;
-                    case 4:
+                    case "4":
                         System.out.println("Thank you for using the Inventory Management System!");
                         scanner.close();
-                        reader.close();
                         System.exit(0);
                     default:
                         System.out.println("Invalid option. Press Enter to continue...");
@@ -226,8 +229,7 @@ public class InventoryTracker {
                 }
             } catch (Exception e) {
                 System.out.println("Invalid input. Press Enter to continue...");
-                scanner.nextLine(); // Consume invalid input
-                scanner.nextLine(); // Wait for Enter
+                scanner.nextLine();
             }
         }
     }
