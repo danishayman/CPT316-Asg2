@@ -130,7 +130,7 @@ public class InventoryTracker {
     public void addItem() {
         System.out.println("\nAdding New Item (Press Ctrl+X to return to main menu)");
         System.out.println("─".repeat(50));
-        System.out.println("Auto-assigned ID will be: " + nextId);
+        System.out.println("Item ID: " + nextId);
         
         String name = getInput("Enter item name: ");
         if (name == null) return;
