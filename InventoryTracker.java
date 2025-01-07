@@ -4,7 +4,15 @@ import java.util.stream.Collectors;
 
 // Main class for inventory management
 public class InventoryTracker {
-    private static final String FILE_PATH = "inventory.txt";
+
+
+    // Main method to start the application
+    public static void main(String[] args) {
+        new InventoryTracker().run();
+    }
+
+    
+    private static final String FILE_PATH = "inventory.txt"; // File path to save inventory
     private Map<Integer, Item> inventory = new HashMap<>();
     private Scanner scanner;
     private int nextId = 1;
@@ -68,8 +76,7 @@ public class InventoryTracker {
         System.out.println("║  [5] Exit System                   ║");
         System.out.println("╚════════════════════════════════════╝");
     }
-
-    // Method to display the current inventory with sorting options
+    
     // Method to display the current inventory with continuous sorting options
     public void displayInventory() {
         if (inventory.isEmpty()) {
@@ -436,10 +443,5 @@ public class InventoryTracker {
                 scanner.nextLine();
             }
         }
-    }
-
-    // Main method to start the application
-    public static void main(String[] args) {
-        new InventoryTracker().run();
     }
 }
