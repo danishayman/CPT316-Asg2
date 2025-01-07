@@ -7,8 +7,8 @@ class Item {
     private String name;
     private int id;
     private int quantity;
-    private double retailPrice;
-    private double wholesalePrice;
+    protected double retailPrice;
+    protected double wholesalePrice;
 
     // Constructor to initialize an item
     public Item(String name, int id, int quantity, double retailPrice, double wholesalePrice) {
@@ -117,7 +117,7 @@ public class InventoryTracker {
         System.out.println("║    INVENTORY MANAGEMENT SYSTEM     ║");
         System.out.println("╠════════════════════════════════════╣");
         System.out.println("║  [1] Add New Item                  ║");
-        System.out.println("║  [2] Update Item Quantity          ║");
+        System.out.println("║  [2] Update Item                   ║");  // Changed text
         System.out.println("║  [3] Display Current Inventory     ║");
         System.out.println("║  [4] Delete Item                   ║");
         System.out.println("║  [5] Exit System                   ║");
@@ -228,50 +228,79 @@ public class InventoryTracker {
     }
 
     // Method to update the quantity of an existing item
-    public void updateQuantity() {
-        System.out.println("\nUpdating Quantity (Enter '0' to return to main menu)");
+    public void updateItem() {
+    System.out.println("\nUpdating Item (Enter '0' to return to main menu)");
+    System.out.println("─".repeat(50));
+
+    // First display current inventory for reference
+    displayInventory();
+    System.out.println("\n");
+
+    String idStr = getInput("Enter item ID: ");
+    if (idStr == null)
+        return;
+
+    try {
+        int id = Integer.parseInt(idStr);
+        if (!inventory.containsKey(id)) {
+            System.out.println("Item not found. Press Enter to continue...");
+            scanner.nextLine();
+            return;
+        }
+
+        Item item = inventory.get(id);
+        System.out.println("\nCurrent Item Details:");
+        System.out.printf("Name: %s\n", item.getName());
+        System.out.printf("Quantity: %d\n", item.getQuantity());
+        System.out.printf("Retail Price: RM%.2f\n", item.getRetailPrice());
+        System.out.printf("Wholesale Price: RM%.2f\n", item.getWholesalePrice());
         System.out.println("─".repeat(50));
 
-        // First display current inventory for reference
-        displayInventory();
-        System.out.println("\n");
-
-        String idStr = getInput("Enter item ID: ");
-        if (idStr == null)
-            return;
-
-        try {
-            int id = Integer.parseInt(idStr);
-            if (!inventory.containsKey(id)) {
-                System.out.println("Item not found. Press Enter to continue...");
-                scanner.nextLine();
-                return;
-            }
-
-            // Show current quantity for reference
-            System.out.println("Current quantity: " + inventory.get(id).getQuantity());
-            String quantityStr = getInput("Enter new quantity: ");
-            if (quantityStr == null)
-                return;
-
+        // Update quantity
+        System.out.printf("Current quantity: %d\n", item.getQuantity());
+        String quantityStr = getInput("Enter new quantity (press Enter to skip): ");
+        if (quantityStr != null && !quantityStr.isEmpty()) {
             int quantity = Integer.parseInt(quantityStr);
             if (quantity < 0) {
-                System.out.println("Quantity cannot be negative. Press Enter to continue...");
-                scanner.nextLine();
-                return;
+                System.out.println("Quantity cannot be negative. No changes made to quantity.");
+            } else {
+                item.setQuantity(quantity);
             }
-
-            inventory.get(id).setQuantity(quantity);
-            saveInventory();
-
-            System.out.println("\nQuantity updated successfully!");
-            System.out.println("Press Enter to continue...");
-            scanner.nextLine();
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Press Enter to continue...");
-            scanner.nextLine();
         }
+
+        // Update retail price
+        System.out.printf("Current retail price: RM%.2f\n", item.getRetailPrice());
+        String retailStr = getInput("Enter new retail price (press Enter to skip): ");
+        if (retailStr != null && !retailStr.isEmpty()) {
+            double retail = Double.parseDouble(retailStr);
+            if (retail < 0) {
+                System.out.println("Price cannot be negative. No changes made to retail price.");
+            } else {
+                item.retailPrice = retail;  // You'll need to make retailPrice protected or add a setter
+            }
+        }
+
+        // Update wholesale price
+        System.out.printf("Current wholesale price: RM%.2f\n", item.getWholesalePrice());
+        String wholesaleStr = getInput("Enter new wholesale price (press Enter to skip): ");
+        if (wholesaleStr != null && !wholesaleStr.isEmpty()) {
+            double wholesale = Double.parseDouble(wholesaleStr);
+            if (wholesale < 0) {
+                System.out.println("Price cannot be negative. No changes made to wholesale price.");
+            } else {
+                item.wholesalePrice = wholesale;  // You'll need to make wholesalePrice protected or add a setter
+            }
+        }
+
+        saveInventory();
+        System.out.println("\nItem updated successfully!");
+        System.out.println("Press Enter to continue...");
+        scanner.nextLine();
+    } catch (NumberFormatException e) {
+        System.out.println("Invalid input. Press Enter to continue...");
+        scanner.nextLine();
     }
+}
 
     // Method to delete an item from the inventory
     public void deleteItem() {
@@ -344,7 +373,7 @@ public class InventoryTracker {
                         break;
                     case "2":
                         clearScreen();
-                        updateQuantity();
+                        updateItem();
                         break;
                     case "3":
                         clearScreen();
