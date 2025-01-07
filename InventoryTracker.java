@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// Class representing an item in the inventory
 class Item {
     private String name;
     private int id;
@@ -9,6 +10,7 @@ class Item {
     private double retailPrice;
     private double wholesalePrice;
 
+    // Constructor to initialize an item
     public Item(String name, int id, int quantity, double retailPrice, double wholesalePrice) {
         this.name = name;
         this.id = id;
@@ -17,17 +19,19 @@ class Item {
         this.wholesalePrice = wholesalePrice;
     }
 
+    // Convert item details to a string format for saving to file
     public String toString() {
         return String.format("%d,%s,%d,%.2f,%.2f", id, name, quantity, retailPrice, wholesalePrice);
     }
 
+    // Create an item object from a string (used when loading from file)
     public static Item fromString(String line) {
         String[] parts = line.split(",");
         return new Item(parts[1], Integer.parseInt(parts[0]), Integer.parseInt(parts[2]),
                 Double.parseDouble(parts[3]), Double.parseDouble(parts[4]));
     }
 
-    // Getters and setters
+    // Getters and setters for item properties
     public String getName() {
         return name;
     }
@@ -53,16 +57,19 @@ class Item {
     }
 }
 
+// Main class for inventory management
 public class InventoryTracker {
     private static final String FILE_PATH = "inventory.txt";
     private Map<Integer, Item> inventory = new HashMap<>();
     private Scanner scanner;
     private int nextId = 1;
 
+    // Constructor to initialize the scanner
     public InventoryTracker() {
         scanner = new Scanner(System.in);
     }
 
+    // Method to clear the console screen
     public void clearScreen() {
         try {
             if (System.getProperty("os.name").contains("Windows")) {
@@ -76,6 +83,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to load inventory from file
     public void loadInventory() {
         try (BufferedReader fileReader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
@@ -91,6 +99,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to save inventory to file
     public void saveInventory() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (Item item : inventory.values()) {
@@ -102,6 +111,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to display the main menu
     public void displayMenu() {
         System.out.println("╔════════════════════════════════════╗");
         System.out.println("║    INVENTORY MANAGEMENT SYSTEM     ║");
@@ -114,38 +124,40 @@ public class InventoryTracker {
         System.out.println("╚════════════════════════════════════╝");
     }
 
+    // Method to display the current inventory
     public void displayInventory() {
-    if (inventory.isEmpty()) {
-        System.out.println("\nInventory is empty!");
-        return;
-    }
-    
-    // Display main inventory
-    System.out.println("\nCurrent Inventory:");
-    System.out.printf("%-5s %-20s %-10s %-12s %-12s%n", "ID", "Name", "Quantity", "Retail", "Wholesale");
-    System.out.println("─".repeat(65));
-    for (Item item : inventory.values()) {
-        System.out.printf("%-5d %-20s %-10d RM %-11.2f RM %-11.2f%n",
-                item.getId(), item.getName(), item.getQuantity(),
-                item.getRetailPrice(), item.getWholesalePrice());
-    }
+        if (inventory.isEmpty()) {
+            System.out.println("\nInventory is empty!");
+            return;
+        }
 
-    // Display low stock items
-    List<Item> lowStockItems = inventory.values().stream()
-            .filter(item -> item.getQuantity() < 10)
-            .collect(Collectors.toList());
+        // Display main inventory
+        System.out.println("\nCurrent Inventory:");
+        System.out.printf("%-5s %-20s %-10s %-12s %-12s%n", "ID", "Name", "Quantity", "Retail", "Wholesale");
+        System.out.println("─".repeat(65));
+        for (Item item : inventory.values()) {
+            System.out.printf("%-5d %-20s %-10d RM %-11.2f RM %-11.2f%n",
+                    item.getId(), item.getName(), item.getQuantity(),
+                    item.getRetailPrice(), item.getWholesalePrice());
+        }
 
-    if (!lowStockItems.isEmpty()) {
-        System.out.println("\n\nLOW STOCK ALERT (Items below 10 units):");
-        System.out.printf("%-5s %-20s %-10s%n", "ID", "Name", "Quantity");
-        System.out.println("─".repeat(35));
-        for (Item item : lowStockItems) {
-            System.out.printf("%-5d %-20s %-10d%n",
-                    item.getId(), item.getName(), item.getQuantity());
+        // Display low stock items
+        List<Item> lowStockItems = inventory.values().stream()
+                .filter(item -> item.getQuantity() < 10)
+                .collect(Collectors.toList());
+
+        if (!lowStockItems.isEmpty()) {
+            System.out.println("\n\nLOW STOCK ALERT (Items below 10 units):");
+            System.out.printf("%-5s %-20s %-10s%n", "ID", "Name", "Quantity");
+            System.out.println("─".repeat(35));
+            for (Item item : lowStockItems) {
+                System.out.printf("%-5d %-20s %-10d%n",
+                        item.getId(), item.getName(), item.getQuantity());
+            }
         }
     }
-}
 
+    // Method to get user input with a prompt
     public String getInput(String prompt) {
         while (true) {
             try {
@@ -163,6 +175,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to add a new item to the inventory
     public void addItem() {
         System.out.println("\nAdding New Item (Enter '0' to return to main menu)");
         System.out.println("─".repeat(50));
@@ -214,6 +227,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to update the quantity of an existing item
     public void updateQuantity() {
         System.out.println("\nUpdating Quantity (Enter '0' to return to main menu)");
         System.out.println("─".repeat(50));
@@ -259,6 +273,7 @@ public class InventoryTracker {
         }
     }
 
+    // Method to delete an item from the inventory
     public void deleteItem() {
         System.out.println("\nDeleting Item (Enter '0' to return to main menu)");
         System.out.println("─".repeat(50));
@@ -310,6 +325,7 @@ public class InventoryTracker {
         }
     }
 
+    // Main method to run the inventory management system
     public void run() {
         loadInventory();
 
@@ -355,6 +371,7 @@ public class InventoryTracker {
         }
     }
 
+    // Main method to start the application
     public static void main(String[] args) {
         new InventoryTracker().run();
     }
