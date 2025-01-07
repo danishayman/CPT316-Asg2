@@ -117,32 +117,39 @@ public class InventoryTracker {
         System.out.println("║    INVENTORY MANAGEMENT SYSTEM     ║");
         System.out.println("╠════════════════════════════════════╣");
         System.out.println("║  [1] Add New Item                  ║");
-        System.out.println("║  [2] Update Item                   ║");  // Changed text
+        System.out.println("║  [2] Update Item                   ║"); // Changed text
         System.out.println("║  [3] Display Current Inventory     ║");
         System.out.println("║  [4] Delete Item                   ║");
         System.out.println("║  [5] Exit System                   ║");
         System.out.println("╚════════════════════════════════════╝");
     }
 
-    // Method to display the current inventory
-    public void displayInventory() {
-        if (inventory.isEmpty()) {
-            System.out.println("\nInventory is empty!");
-            return;
-        }
+    // Method to display the current inventory with sorting options
+    // Method to display the current inventory with continuous sorting options
+public void displayInventory() {
+    if (inventory.isEmpty()) {
+        System.out.println("\nInventory is empty!");
+        return;
+    }
 
+    // Create a list from the inventory values for sorting
+    List<Item> items = new ArrayList<>(inventory.values());
+    boolean continueSorting = true;
+
+    while (continueSorting) {
+        clearScreen();
         // Display main inventory
         System.out.println("\nCurrent Inventory:");
         System.out.printf("%-5s %-20s %-10s %-12s %-12s%n", "ID", "Name", "Quantity", "Retail", "Wholesale");
         System.out.println("─".repeat(65));
-        for (Item item : inventory.values()) {
+        for (Item item : items) {
             System.out.printf("%-5d %-20s %-10d RM %-11.2f RM %-11.2f%n",
                     item.getId(), item.getName(), item.getQuantity(),
                     item.getRetailPrice(), item.getWholesalePrice());
         }
 
         // Display low stock items
-        List<Item> lowStockItems = inventory.values().stream()
+        List<Item> lowStockItems = items.stream()
                 .filter(item -> item.getQuantity() < 10)
                 .collect(Collectors.toList());
 
@@ -155,7 +162,60 @@ public class InventoryTracker {
                         item.getId(), item.getName(), item.getQuantity());
             }
         }
+
+        // Display sorting options
+        System.out.println("\nSort inventory by:");
+        System.out.println("╔════════════════════════════════════╗");
+        System.out.println("║  [1] Name (A-Z)                    ║");
+        System.out.println("║  [2] Name (Z-A)                    ║");
+        System.out.println("║  [3] Quantity (High-Low)           ║");
+        System.out.println("║  [4] Quantity (Low-High)           ║");
+        System.out.println("║  [5] Retail Price (High-Low)       ║");
+        System.out.println("║  [6] Retail Price (Low-High)       ║");
+        System.out.println("║  [7] Wholesale Price (High-Low)    ║");
+        System.out.println("║  [8] Wholesale Price (Low-High)    ║");
+        System.out.println("║  [0] Return to main menu           ║");
+        System.out.println("╚════════════════════════════════════╝");
+
+        String sortChoice = getInput("\nChoose sorting option: ");
+        if (sortChoice == null || sortChoice.equals("0")) {
+            continueSorting = false;
+            continue;
+        }
+
+        // Sort based on user choice
+        switch (sortChoice) {
+            case "1":
+                items.sort(Comparator.comparing(Item::getName));
+                break;
+            case "2":
+                items.sort(Comparator.comparing(Item::getName).reversed());
+                break;
+            case "3":
+                items.sort(Comparator.comparing(Item::getQuantity).reversed());
+                break;
+            case "4":
+                items.sort(Comparator.comparing(Item::getQuantity));
+                break;
+            case "5":
+                items.sort(Comparator.comparing(Item::getRetailPrice).reversed());
+                break;
+            case "6":
+                items.sort(Comparator.comparing(Item::getRetailPrice));
+                break;
+            case "7":
+                items.sort(Comparator.comparing(Item::getWholesalePrice).reversed());
+                break;
+            case "8":
+                items.sort(Comparator.comparing(Item::getWholesalePrice));
+                break;
+            default:
+                System.out.println("Invalid sorting option. Press Enter to continue...");
+                scanner.nextLine();
+                break;
+        }
     }
+}
 
     // Method to get user input with a prompt
     public String getInput(String prompt) {
@@ -229,78 +289,78 @@ public class InventoryTracker {
 
     // Method to update the quantity of an existing item
     public void updateItem() {
-    System.out.println("\nUpdating Item (Enter '0' to return to main menu)");
-    System.out.println("─".repeat(50));
-
-    // First display current inventory for reference
-    displayInventory();
-    System.out.println("\n");
-
-    String idStr = getInput("Enter item ID: ");
-    if (idStr == null)
-        return;
-
-    try {
-        int id = Integer.parseInt(idStr);
-        if (!inventory.containsKey(id)) {
-            System.out.println("Item not found. Press Enter to continue...");
-            scanner.nextLine();
-            return;
-        }
-
-        Item item = inventory.get(id);
-        System.out.println("\nCurrent Item Details:");
-        System.out.printf("Name: %s\n", item.getName());
-        System.out.printf("Quantity: %d\n", item.getQuantity());
-        System.out.printf("Retail Price: RM%.2f\n", item.getRetailPrice());
-        System.out.printf("Wholesale Price: RM%.2f\n", item.getWholesalePrice());
+        System.out.println("\nUpdating Item (Enter '0' to return to main menu)");
         System.out.println("─".repeat(50));
 
-        // Update quantity
-        System.out.printf("Current quantity: %d\n", item.getQuantity());
-        String quantityStr = getInput("Enter new quantity (press Enter to skip): ");
-        if (quantityStr != null && !quantityStr.isEmpty()) {
-            int quantity = Integer.parseInt(quantityStr);
-            if (quantity < 0) {
-                System.out.println("Quantity cannot be negative. No changes made to quantity.");
-            } else {
-                item.setQuantity(quantity);
-            }
-        }
+        // First display current inventory for reference
+        displayInventory();
+        System.out.println("\n");
 
-        // Update retail price
-        System.out.printf("Current retail price: RM%.2f\n", item.getRetailPrice());
-        String retailStr = getInput("Enter new retail price (press Enter to skip): ");
-        if (retailStr != null && !retailStr.isEmpty()) {
-            double retail = Double.parseDouble(retailStr);
-            if (retail < 0) {
-                System.out.println("Price cannot be negative. No changes made to retail price.");
-            } else {
-                item.retailPrice = retail;  // You'll need to make retailPrice protected or add a setter
-            }
-        }
+        String idStr = getInput("Enter item ID: ");
+        if (idStr == null)
+            return;
 
-        // Update wholesale price
-        System.out.printf("Current wholesale price: RM%.2f\n", item.getWholesalePrice());
-        String wholesaleStr = getInput("Enter new wholesale price (press Enter to skip): ");
-        if (wholesaleStr != null && !wholesaleStr.isEmpty()) {
-            double wholesale = Double.parseDouble(wholesaleStr);
-            if (wholesale < 0) {
-                System.out.println("Price cannot be negative. No changes made to wholesale price.");
-            } else {
-                item.wholesalePrice = wholesale;  // You'll need to make wholesalePrice protected or add a setter
+        try {
+            int id = Integer.parseInt(idStr);
+            if (!inventory.containsKey(id)) {
+                System.out.println("Item not found. Press Enter to continue...");
+                scanner.nextLine();
+                return;
             }
-        }
 
-        saveInventory();
-        System.out.println("\nItem updated successfully!");
-        System.out.println("Press Enter to continue...");
-        scanner.nextLine();
-    } catch (NumberFormatException e) {
-        System.out.println("Invalid input. Press Enter to continue...");
-        scanner.nextLine();
+            Item item = inventory.get(id);
+            System.out.println("\nCurrent Item Details:");
+            System.out.printf("Name: %s\n", item.getName());
+            System.out.printf("Quantity: %d\n", item.getQuantity());
+            System.out.printf("Retail Price: RM%.2f\n", item.getRetailPrice());
+            System.out.printf("Wholesale Price: RM%.2f\n", item.getWholesalePrice());
+            System.out.println("─".repeat(50));
+
+            // Update quantity
+            System.out.printf("Current quantity: %d\n", item.getQuantity());
+            String quantityStr = getInput("Enter new quantity (press Enter to skip): ");
+            if (quantityStr != null && !quantityStr.isEmpty()) {
+                int quantity = Integer.parseInt(quantityStr);
+                if (quantity < 0) {
+                    System.out.println("Quantity cannot be negative. No changes made to quantity.");
+                } else {
+                    item.setQuantity(quantity);
+                }
+            }
+
+            // Update retail price
+            System.out.printf("Current retail price: RM%.2f\n", item.getRetailPrice());
+            String retailStr = getInput("Enter new retail price (press Enter to skip): ");
+            if (retailStr != null && !retailStr.isEmpty()) {
+                double retail = Double.parseDouble(retailStr);
+                if (retail < 0) {
+                    System.out.println("Price cannot be negative. No changes made to retail price.");
+                } else {
+                    item.retailPrice = retail; // You'll need to make retailPrice protected or add a setter
+                }
+            }
+
+            // Update wholesale price
+            System.out.printf("Current wholesale price: RM%.2f\n", item.getWholesalePrice());
+            String wholesaleStr = getInput("Enter new wholesale price (press Enter to skip): ");
+            if (wholesaleStr != null && !wholesaleStr.isEmpty()) {
+                double wholesale = Double.parseDouble(wholesaleStr);
+                if (wholesale < 0) {
+                    System.out.println("Price cannot be negative. No changes made to wholesale price.");
+                } else {
+                    item.wholesalePrice = wholesale; // You'll need to make wholesalePrice protected or add a setter
+                }
+            }
+
+            saveInventory();
+            System.out.println("\nItem updated successfully!");
+            System.out.println("Press Enter to continue...");
+            scanner.nextLine();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Press Enter to continue...");
+            scanner.nextLine();
+        }
     }
-}
 
     // Method to delete an item from the inventory
     public void deleteItem() {
